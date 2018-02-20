@@ -21,13 +21,26 @@ app.post('/todos',(req, res)=>{
   });
 });
 
-
+var cache =[];
+app.get('/todos',(req, res)=>{
+  Todo.find().then((doc)=>{
+    res.send(doc);
+  },(err)=>{
+    res.status(400).send(err);
+  })
+})
 
 let user1 = new user({
   email : "ashish"
 });
 
 user1.save();
+app.get('/reset',(req, res)=>{
+    Todo.remove({}).then((doc)=>{
+      console.log(doc);
+  });
+  res.send("Data has been reset");
+});
 
 app.listen(3000,()=>{
   console.log("Connected to the Server (3000)");
