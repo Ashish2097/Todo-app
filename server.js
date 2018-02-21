@@ -1,6 +1,7 @@
 const bodyParser = require('body-parser');
 const express = require('express');
 
+const {ObjectID} = require('mongodb');
 const {mongoose} = require('./db/mongoose');
 const {Todo} = require('./models/todo');
 const {user} = require('./models/user');
@@ -30,11 +31,21 @@ app.get('/todos',(req, res)=>{
   })
 })
 
-let user1 = new user({
-  email : "ashish"
-});
+app.get('/todos/:id',(req, res)=>{
+  var id = req.params.id;
+  if(!ObjectID.isValid(id)){
+    return res.status(404).send("Not a valid id");
+  };
+  Todo.findById(id).then((todo)=>{
+    if(todo == null)
+      res.status(404).send("No data with this id");
+    else
+      res.send("-------\n"+todo);
+  },(error)=>{
+    res.send(error);
+  });
+})
 
-user1.save();
 app.get('/reset',(req, res)=>{
     Todo.remove({}).then((doc)=>{
       console.log(doc);
