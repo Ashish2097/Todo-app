@@ -1,3 +1,5 @@
+require("./config/config");
+const _ = require('lodash');
 const bodyParser = require('body-parser');
 const express = require('express');
 
@@ -7,7 +9,12 @@ const {Todo} = require('./models/todo');
 const {user} = require('./models/user');
 
 let app = express();
+
+const port = process.env.PORT;
+console.log(port);
 app.use(bodyParser.json());
+
+
 app.post('/todos',(req, res)=>{
   let todo1 = new Todo({
     text: req.body.text,
@@ -73,6 +80,40 @@ app.get('/reset',(req, res)=>{
   res.send("Data has been reset");
 });
 
-app.listen(3000,()=>{
-  console.log("Connected to the Server (3000)");
+//updating
+app.patch('/todos/:id',(req, res)=>{
+  let id = req.params.id;
+  let body = _.pick(req.body,["text","completed"]);
+  if(!ObjectID.isValid(id)){
+      return res.status(404).send("Not a valid id: "+id);
+  }
+
+  if(_.isBoolean(body.completed) && body.completed)
+  {
+    body.completedat = new Date().getTime();
+  }
+  else{
+    body.completed = false;
+    body.completedat = null;
+  }
+  console.log(body);
+  // Todo.findByIdAndUpdate(id,{$set:{"text":"hey"}},{new : true}).then((res)=>{
+  //   res.send(res);
+  // })
+    Todo.findByIdAndUpdate(id, {$set : body },{new : true}).then((todo)=>{
+    console.log(todo);
+    if(!todo)
+    {
+      return res.status(404).send("Cant update.");
+    }
+    res.send(todo);
+
+  }).catch((e)=>{
+    res.status(400).send("error:  "+e);
+  })
+
+});
+
+app.listen(port,()=>{
+  console.log(`Connected to the Server ${port}`);
 });
