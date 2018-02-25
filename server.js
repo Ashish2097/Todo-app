@@ -6,7 +6,7 @@ const express = require('express');
 const {ObjectID} = require('mongodb');
 const {mongoose} = require('./db/mongoose');
 const {Todo} = require('./models/todo');
-const {user} = require('./models/user');
+const {User} = require('./models/user');
 
 let app = express();
 
@@ -14,7 +14,7 @@ const port = process.env.PORT;
 console.log(port);
 app.use(bodyParser.json());
 
-
+//adding todo
 app.post('/todos',(req, res)=>{
   let todo1 = new Todo({
     text: req.body.text,
@@ -29,14 +29,15 @@ app.post('/todos',(req, res)=>{
   });
 });
 
-var cache =[];
+//list of all todos
 app.get('/todos',(req, res)=>{
   Todo.find().then((doc)=>{
     res.send(doc);
   },(err)=>{
     res.status(400).send(err);
   })
-})
+});
+
 //finding by id ....route
 app.get('/todos/:id',(req, res)=>{
   var id = req.params.id;
@@ -51,7 +52,8 @@ app.get('/todos/:id',(req, res)=>{
   },(error)=>{
     res.send(error);
   });
-})
+});
+
 //deleting by id ....route
 app.delete('/todos/:id',(req, res)=>{
   let id = req.params.id;
@@ -76,6 +78,10 @@ app.delete('/todos/:id',(req, res)=>{
 app.get('/reset',(req, res)=>{
     Todo.remove({}).then((doc)=>{
       console.log(doc);
+      console.log("\n---------------------------\n");
+  });
+  User.remove({}).then((doc)=>{
+    console.log(doc);
   });
   res.send("Data has been reset");
 });
@@ -112,6 +118,20 @@ app.patch('/todos/:id',(req, res)=>{
     res.status(400).send("error:  "+e);
   })
 
+});
+
+//adding User
+app.post('/users',(req, res)=>{
+  let body = _.pick(req.body,['email','password']);
+  let user = new User(body);
+  user.save().then(()=>{
+    user.generateAuthToken();
+    // return res.send(user);
+  }).then((token)=>{
+    res.header('x-auth',token).send(user);
+  }).catch((e)=>{
+    return res.status(400).send('Error '+e);
+  })
 });
 
 app.listen(port,()=>{
