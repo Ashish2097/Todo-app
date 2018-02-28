@@ -7,6 +7,7 @@ const {ObjectID} = require('mongodb');
 const {mongoose} = require('./db/mongoose');
 const {Todo} = require('./models/todo');
 const {User} = require('./models/user');
+const {authenticate} = require("./middleware/authenticate");
 
 let app = express();
 
@@ -86,7 +87,7 @@ app.get('/reset',(req, res)=>{
   res.send("Data has been reset");
 });
 
-//updating
+//updating //authentication added
 app.patch('/todos/:id',(req, res)=>{
   let id = req.params.id;
   let body = _.pick(req.body,["text","completed"]);
@@ -134,6 +135,10 @@ app.post('/users',(req, res)=>{
   })
 });
 
+//auth test
+app.get('/users/me', authenticate, (req, res)=>{
+  res.send(req.user);
+})
 app.listen(port,()=>{
   console.log(`Connected to the Server ${port}`);
 });

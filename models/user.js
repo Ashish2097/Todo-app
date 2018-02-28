@@ -40,13 +40,28 @@ UserSchema.methods.toJSON = function(){
 UserSchema.methods.generateAuthToken = function(){
   let user = this;
   let access = 'auth';
-  let token = jwt.sign({_id: user._id, access},"secretkey").toString();
+  let token = jwt.sign({user, access},"secretkey").toString();
   user.tokens.push({access,token});
   return user.save().then(()=>{
     return token;
   });
+};
 
-}
+UserSchema.statics.findByToken = function(token){   //statics --> non constructor method.....have to be called seperately
+  let user = this;
+  let decode;
+  let id;
+  try{
+    decode = jwt.verify(token,'secretkey');
+    console.log(decode);
+    id = decode.user._id;
+  }catch(e2){
+    return Promise.reject("2. error in find by token /models/user.js = " + e2);
+  }
+
+  return User.findById(id);
+
+};
 
 let User = mongoose.model("User",UserSchema);
 
