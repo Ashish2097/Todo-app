@@ -77,6 +77,28 @@ UserSchema.pre('save', function (next){   //setting action to save event
 
   }
 });
+
+UserSchema.findByCredentials = function(email, password) {
+  var User = this;
+
+  User.findOne({email}).then((user)=>{
+    if(!user){
+        return Promise.reject();
+    }
+
+    return new Promise((resolve, reject)=>{
+      bcrypt.compare(password, user.password, (err, res)=>{
+        if(res === 'true'){
+          resolve(user);
+        }
+        else{
+          reject("password doesn't match");
+        }
+      })
+    });
+  });
+};
+
 let User = mongoose.model("User",UserSchema);
 
 module.exports = {User};
