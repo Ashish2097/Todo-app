@@ -1,4 +1,4 @@
-const mongoose = require('mongoose'); 
+const mongoose = require('mongoose');
 
 let Todo = mongoose.model('todos',{ //case insensitive
   text:{
@@ -13,7 +13,11 @@ let Todo = mongoose.model('todos',{ //case insensitive
   },
   completedat:{
     type: Number,
-    delfault: null
+    default: null
+  },
+  _creator:{
+    type: mongoose.Schema.Types.ObjectId, 
+    require: true,
   }
 });
 

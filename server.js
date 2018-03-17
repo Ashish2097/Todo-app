@@ -16,11 +16,10 @@ console.log(port);
 app.use(bodyParser.json());
 
 //adding todo
-app.post('/todos',(req, res)=>{
+app.post('/todos', authenticate, (req, res)=>{
   let todo1 = new Todo({
     text: req.body.text,
-    completed: req.body.completed,
-    completedat: req.body.completed
+    _creator: req.user._id        //associating todo with its user
   });
 
   todo1.save().then((result)=>{
@@ -31,8 +30,10 @@ app.post('/todos',(req, res)=>{
 });
 
 //list of all todos
-app.get('/todos',(req, res)=>{
-  Todo.find().then((doc)=>{
+app.get('/todos', authenticate, (req, res)=>{
+  Todo.find({
+    _creator: req.user._id    //to ensure the privacy of user
+  }).then((doc)=>{
     res.send(doc);
   },(err)=>{
     res.status(400).send(err);
@@ -40,12 +41,15 @@ app.get('/todos',(req, res)=>{
 });
 
 //finding by id ....route
-app.get('/todos/:id',(req, res)=>{
+app.get('/todos/:id', authenticate,(req, res)=>{
   var id = req.params.id;
   if(!ObjectID.isValid(id)){
     return res.status(404).send("Not a valid id");
   };
-  Todo.findById(id).then((todo)=>{
+  Todo.findOne({
+    _id: id,
+    _creator: req.user._id        //finding only the associated todo
+  }).then((todo)=>{
     if(todo == null)
       res.status(404).send("No data with this id");
     else
@@ -56,13 +60,16 @@ app.get('/todos/:id',(req, res)=>{
 });
 
 //deleting by id ....route
-app.delete('/todos/:id',(req, res)=>{
+app.delete('/todos/:id', authenticate, (req, res)=>{
   let id = req.params.id;
   if(!ObjectID.isValid(id)){
     res.status(404).send("Not a valid id: "+id);
   }
   else{
-    Todo.findByIdAndRemove(id).then((todo)=>{
+    Todo.findOneAndRemove({
+      _id: id,
+      _creator: req.user._id      //again checking for only user's todo
+    }).then((todo)=>{
       if(todo === null){
         res.status(404).send("Cant find the todo");
       }
@@ -88,13 +95,12 @@ app.get('/reset',(req, res)=>{
 });
 
 //updating //authentication added
-app.patch('/todos/:id',(req, res)=>{
+app.patch('/todos/:id', authenticate, (req, res)=>{
   let id = req.params.id;
   let body = _.pick(req.body,["text","completed"]);
   if(!ObjectID.isValid(id)){
       return res.status(404).send("Not a valid id: "+id);
   }
-
   if(_.isBoolean(body.completed) && body.completed)
   {
     body.completedat = new Date().getTime();
@@ -103,19 +109,19 @@ app.patch('/todos/:id',(req, res)=>{
     body.completed = false;
     body.completedat = null;
   }
-  console.log(body);
   // Todo.findByIdAndUpdate(id,{$set:{"text":"hey"}},{new : true}).then((res)=>{
   //   res.send(res);
   // })
-    Todo.findByIdAndUpdate(id, {$set : body },{new : true}).then((todo)=>{
-    console.log(todo);
-    if(!todo)
-    {
-      return res.status(404).send("Cant update.");
-    }
-    res.send(todo);
-
-  }).catch((e)=>{
+  Todo.findOneAndUpdate({
+        _id: id,
+        _creator: req.user._id
+      }, {$set : body },{new : true}).then((todo)=>{
+      if(!todo)
+      {
+        return res.status(404).send("Cant update.");
+      }
+      res.send(todo);
+    }).catch((e)=>{
     res.status(400).send("error:  "+e);
   })
 
