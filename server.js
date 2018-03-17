@@ -146,11 +146,11 @@ app.post('/users/login',(req, res)=>{
   let email = body.email;
   let password = body.password;
 
-  User.findByCredentials(email, password).then((res)={
-    user.generateAuthToken().then((token)=>{
+  User.findByCredentials(email, password).then((result)=>{
+    User.generateAuthToken().then((token)=>{
       res.header('x-auth',token).send(user);
 
-    })
+    });
   }).catch((e)=>{
     res.status(400).send("Incorrect Password.");
   });
