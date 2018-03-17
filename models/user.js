@@ -48,20 +48,27 @@ UserSchema.methods.generateAuthToken = function(){
   });
 };
 
+UserSchema.methods.removeToken = function(token){
+  var user = this;
+
+  return user.update({
+    $pull: {
+      tokens: {token}   //why this is pulling all the content inside the tokens attribure ?? dm me
+    }
+  })
+};
+
 UserSchema.statics.findByToken = function(token){   //statics --> non constructor method.....have to be called seperately
   let user = this;
   let decode;
   let id;
   try{
     decode = jwt.verify(token,'secretkey');
-    console.log(decode);
     id = decode.user._id;
   }catch(e2){
     return Promise.reject("2. error in find by token /models/user.js = " + e2);
   }
-
   return User.findById(id);
-
 };
 
 UserSchema.pre('save', function (next){   //setting action to save event

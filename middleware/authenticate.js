@@ -6,13 +6,19 @@ let authenticate=(req, res, next)=>{
   User.findByToken(token).then((user)=>{
     if(!user)
     {
-      return Promise.reject();
+      return Promise.reject("User with this token is NULL.");
     }
+    if(typeof user.tokens.token === "undefined")
+    {
+      return Promise.reject("This user doesnt have any token, give him/her one.");
+    }
+    console.log(user.tokens);
+
     req.user = user;
     req.token = token;
     next();       //to move forward from middle-ware to next func.
-  },(error)=>{
-    res.status(401).send(error);
+  }).catch((e)=>{
+    res.status(401).send("Authenticate : " + e);
   });
 };
 
