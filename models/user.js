@@ -78,23 +78,24 @@ UserSchema.pre('save', function (next){   //setting action to save event
   }
 });
 
-UserSchema.findByCredentials = function(email, password) {
+UserSchema.statics.findByCredentials = function(email, password) {
   var User = this;
-
-  User.findOne({email}).then((user)=>{
+  console.log(password);
+  return User.findOne({email}).then((user)=>{
     if(!user){
-        return Promise.reject();
+        return Promise.reject("User not found.");
     }
-
     return new Promise((resolve, reject)=>{
+      console.log(password);
+      console.log(user.password);
       bcrypt.compare(password, user.password, (err, res)=>{
-        if(res === 'true'){
+        if(res){
           resolve(user);
         }
         else{
           reject("password doesn't match");
         }
-      })
+      });
     });
   });
 };
