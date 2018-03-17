@@ -8,7 +8,7 @@ let authenticate=(req, res, next)=>{
     {
       return Promise.reject("User with this token is NULL.");
     }
-    if(typeof user.tokens.token === "undefined")
+    if(typeof user.tokens[0].token === "undefined")
     {
       return Promise.reject("This user doesnt have any token, give him/her one.");
     }

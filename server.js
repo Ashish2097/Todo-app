@@ -131,7 +131,7 @@ app.post('/users',(req, res)=>{
   }).then((token)=>{
     return res.header('x-auth',token).send(user);
   }).catch((e)=>{
-    return res.status(400).send('Error '+e);
+    return res.status(400).send('Server : User with this email is already in db.\n\n' + e);
   })
 });
 
